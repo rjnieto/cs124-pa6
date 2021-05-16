@@ -211,7 +211,6 @@ class Chatbot:
                 first_segment = title[(len(first_word) + 1):]
                 second_segment = ", " + first_word
                 edited_title = first_segment + second_segment
-            print(edited_title)
         else:
             edited_title = title
 
