@@ -158,7 +158,20 @@ class Chatbot:
         pre-processed with preprocess()
         :returns: list of movie titles that are potentially in the text
         """
-        return []
+        extracted_titles = []
+        new_substring = preprocessed_input
+        curr_index = new_substring.find("\"")
+        while curr_index != -1:
+            new_substring = new_substring[curr_index + 1:]
+            end_index = new_substring.find("\"")
+            if end_index != -1:
+                extracted_titles.append(new_substring[0:end_index])
+                new_substring = new_substring[end_index + 1:]
+                curr_index = new_substring.find("\"")
+            else:
+                break
+
+        return extracted_titles
 
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
