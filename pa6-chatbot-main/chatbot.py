@@ -191,7 +191,42 @@ class Chatbot:
         :param title: a string containing a movie title
         :returns: a list of indices of matching movies
         """
-        return []
+        titles = util.load_titles('data/movies.txt')
+        matches = []
+
+        edited_title = ""
+        articles = ["The", "An", "A"]
+        first_word = title.split()[0]
+        if first_word in articles:
+            # if the title query has date
+            if title[-1] == ')':
+                # first segment is title without article
+                first_segment = title[(len(first_word) + 1):(len(title) - 7)]
+                # second segment is article with the appropriate comma and spaces
+                second_segment = ", " + first_word + " "
+                # third segment is year (with parentheses)
+                third_segment = title[len(title)-6:]
+                edited_title = first_segment + second_segment + third_segment
+            else:
+                first_segment = title[(len(first_word) + 1):]
+                second_segment = ", " + first_word
+                edited_title = first_segment + second_segment
+            print(edited_title)
+        else:
+            edited_title = title
+
+
+        for i in range(len(titles)):
+            cur = titles[i][0]
+
+            if '(' not in edited_title:
+                cur = cur[:-7]
+                #print(cur)
+            if edited_title == cur:
+                matches.append(i)
+                #print(titles[i])
+
+        return matches
 
     def extract_sentiment(self, preprocessed_input):
         """Extract a sentiment rating from a line of pre-processed text.
