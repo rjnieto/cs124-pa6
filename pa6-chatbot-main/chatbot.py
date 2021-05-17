@@ -4,6 +4,7 @@
 ######################################################################
 import util
 
+from porter_stemmer import PorterStemmer
 import numpy as np
 
 
@@ -247,7 +248,74 @@ class Chatbot:
         pre-processed with preprocess()
         :returns: a numerical value for the sentiment of the text
         """
-        return 0
+        #make a tokenizer
+        str = preprocessed_input
+        words = [""]
+        j = 0
+        #to separate these forms of punctuation
+        delimiters = ['"', '"', ',', '.']
+        for i in range(len(str)):
+            if str[i] in delimiters:
+                if words[j] == "":
+                    words[j] = str[i]
+                    j += 1
+                else:
+                    words.append(str[i])
+                    j += 2
+                if i != len(str) - 1:
+                    words.append("")
+                #print("Done \n\n")
+            elif str[i] != ' ':
+                words[j] += str[i]
+            else:
+                if words[j] != "":
+                    words.append("")
+                    j += 1
+        #list of words done
+
+        # sentiment evaluation
+        total = 0
+        #negation coefficient
+        coe = 1
+        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont", "can't", "couldn't"]
+        movie_title = False
+        stemmer = PorterStemmer()
+        for word in words:
+            #negation words flip sentiment meaning
+            if word in negation_words:
+                coe = -1
+            #so the words in the movie dont influence overall text sentiment
+            elif word == '"' or word == '"':
+                #switch to false if previously true
+                if movie_title:
+                    movie_title = False
+                #switch to true if previously false
+                else:
+                    movie_title = True
+
+            if word in self.sentiment and not movie_title:
+                sent = self.sentiment[word]
+                #add to total and multiply by negation coefficient
+                if sent == "pos":
+                    total += 1 * coe
+                if sent == "neg":
+                    total += -1 * coe
+
+            else:
+                word2 = stemmer.stem(word, 0, len(word) - 1)
+                #doesnt stem enjoy correctly because who knows
+                if word2 == "enjoi":
+                    word2 = "enjoy"
+                #print(word2)
+                if word2 in self.sentiment and not movie_title:
+                    sent = self.sentiment[word2]
+                    #add to total and multiply by negation coefficient
+                    if sent == "pos":
+                        total += 1 * coe
+                    if sent == "neg":
+                        total += -1 * coe
+
+        return total
 
     def extract_sentiment_for_movies(self, preprocessed_input):
         """Creative Feature: Extracts the sentiments from a line of
