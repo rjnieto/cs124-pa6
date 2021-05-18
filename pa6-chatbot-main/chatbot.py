@@ -222,7 +222,7 @@ class Chatbot:
             if '(' not in edited_title:
                 cur = cur[:-7]
                 #print(cur)
-            if edited_title == cur:
+            if edited_title == cur or title == cur:     # in the case that article isn't moved to end
                 matches.append(i)
                 #print(titles[i])
 
