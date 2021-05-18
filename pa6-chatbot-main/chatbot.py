@@ -192,6 +192,13 @@ class Chatbot:
         :param title: a string containing a movie title
         :returns: a list of indices of matching movies
         """
+        ###############################################
+        # Might have to make this function so that it's 
+        # not case sensitive (convert to lowercase when 
+        # comparing). I had to do that for the function
+        # find_movies_closest_to_title, so we may have 
+        # to implement it here to be safe.
+        ###############################################
         titles = util.load_titles('data/movies.txt')
         matches = []
 
