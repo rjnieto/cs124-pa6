@@ -451,7 +451,9 @@ class Chatbot:
         ########################################################################
         # TODO: Compute cosine similarity between the two vectors.             #
         ########################################################################
-        similarity = 0
+        num = np.dot(u, v)
+        dem = np.sqrt(np.sum(np.multiply(u, u))) * np.sqrt(np.sum(np.multiply(v, v)))
+        similarity = num / dem
         ########################################################################
         #                          END OF YOUR CODE                            #
         ########################################################################
