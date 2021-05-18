@@ -363,8 +363,96 @@ class Chatbot:
         :returns: a list of movie indices with titles closest to the given title
         and within edit distance max_distance
         """
+        
+        titles = util.load_titles('data/movies.txt')
+        matches_and_distance = []
 
-        pass
+        edited_title = ""
+        articles = ["The", "An", "A"]
+        first_word = title.split()[0]
+        if first_word in articles:
+            # if the title query has date
+            if title[-1] == ')':
+                # first segment is title without article
+                first_segment = title[(len(first_word) + 1):(len(title) - 7)]
+                # second segment is article with the appropriate comma and spaces
+                second_segment = ", " + first_word + " "
+                # third segment is year (with parentheses)
+                third_segment = title[len(title) - 6:]
+                edited_title = first_segment + second_segment + third_segment
+            else:
+                first_segment = title[(len(first_word) + 1):]
+                second_segment = ", " + first_word
+                edited_title = first_segment + second_segment
+        else:
+            edited_title = title
+
+        for i in range(len(titles)):
+            current_title = titles[i][0]    # target
+            # check whether the title has article first or not, because not
+            # all do the weird title thing
+            source = ""
+            if current_title.split()[0] in articles:
+                source = title
+            else:
+                source = edited_title
+
+            # Check whether they want movie with specific date or not
+            # by checking if there is a date at the end of the source.
+            # If there is, then you do nothing to the current_title
+            # If there is not a date, then you eliminate the date in the
+            # current title because it's not required.
+            if source[len(source) - 1] != ')':
+                current_title = current_title[:-7]
+
+            # for testing purposes
+            # current_title = "Ten"
+            # source = "Te"
+            # build matrix
+            target_list = []
+            for c_t in range(len(current_title)):
+                target_list.append(current_title[c_t].lower())
+            source_list = []
+            for c_s in range(len(source)):
+                source_list.append(source[c_s].lower())
+
+            # set initial row and column
+            matrix = np.zeros((len(source_list) + 1, len(target_list) + 1))
+            for c in range(len(target_list) + 1):
+                matrix[0][c] = c
+
+            for r in range(len(source_list) + 1):
+                matrix[r][0] = r
+
+            # loop through all of the rows and columns and
+            # update value in current
+            for row in range(1, len(source_list) + 1):
+                for col in range(1, len(target_list) + 1):
+                    potential_values = []
+                    potential_values.append(matrix[row-1][col] + 1)
+                    potential_values.append(matrix[row][col-1] + 1)
+                    if target_list[col-1] == source_list[row-1]:
+                        potential_values.append(matrix[row-1][col-1])
+                    else:
+                        potential_values.append(matrix[row-1][col-1] + 2)
+                    matrix[row][col] = min(potential_values)
+
+            min_edit_distance = matrix[len(source_list)][len(target_list)]
+            if min_edit_distance <= max_distance:
+                if len(matches_and_distance) == 0:
+                    matches_and_distance.append((i, min_edit_distance))
+                else:
+                    if min_edit_distance == matches_and_distance[0][1]:
+                        matches_and_distance.append((i, min_edit_distance))
+                    if min_edit_distance < matches_and_distance[0][1]:
+                        matches_and_distance.clear()
+                        matches_and_distance.append((i, min_edit_distance))
+            # for testing
+        matching_indices = []
+        for tup in matches_and_distance:
+            matching_indices.append(tup[0])
+
+        return matching_indices
 
     def disambiguate(self, clarification, candidates):
         """Creative Feature: Given a list of movies that the user could be
