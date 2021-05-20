@@ -481,7 +481,26 @@ class Chatbot:
         :returns: a list of indices corresponding to the movies identified by
         the clarification
         """
-        pass
+        titles = util.load_titles('data/movies.txt')
+        # Clarification is a year
+        isLatest = False
+        latest = 0
+        latestIndex = 0
+        for index in candidates:
+            movie = titles[index]
+            if "recent" in clarification:
+                isLatest = True
+            ind = movie[0].find("(")
+            year = movie[0][ind+1: ind+5]
+            if str(year) > str(latest):
+                latest = year
+                latestIndex = index
+            if clarification in movie[0]:
+                return [index]
+
+        if isLatest:
+            return [latestIndex]
+        return candidates
 
     ############################################################################
     # 3. Movie Recommendation helper functions                                 #
