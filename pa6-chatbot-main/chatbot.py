@@ -544,7 +544,13 @@ class Chatbot:
         # TODO: Compute cosine similarity between the two vectors.             #
         ########################################################################
         num = np.dot(u, v)
-        dem = np.sqrt(np.sum(np.multiply(u, u))) * np.sqrt(np.sum(np.multiply(v, v)))
+        #dem = np.sqrt(np.dot(u, u)) * np.sqrt(np.dot(v, v))
+
+        uNorm = np.linalg.norm(u)
+        vNorm = np.linalg.norm(v)
+        dem = uNorm * vNorm
+        if dem == 0:
+            return 0
         similarity = num / dem
         ########################################################################
         #                          END OF YOUR CODE                            #
@@ -573,7 +579,7 @@ class Chatbot:
         :returns: a list of k movie indices corresponding to movies in
         ratings_matrix, in descending order of recommendation.
         """
-
+        
         ########################################################################
         # TODO: Implement a recommendation function that takes a vector        #
         # user_ratings and matrix ratings_matrix and outputs a list of movies  #
@@ -586,9 +592,43 @@ class Chatbot:
         # with cosine similarity, no mean-centering, and no normalization of   #
         # scores.                                                              #
         ########################################################################
+        recs = []
+        # for each movie
+        for i in range(len(ratings_matrix)):
+            # if the user hasn't rated that movie
+            if user_ratings[i] == 0:
+                # get the ratings_vector for movie i
+                r2 = ratings_matrix[i]
+                rating = 0
+                # cos-sim of mov i with all movies user rated
+                for j in range(len(user_ratings)):
+                    # only look at ones user has rated
+                    if user_ratings[j] != 0:
+                        # retrieve cosine similarity
+                        sim = Chatbot.similarity(self, ratings_matrix[j], r2) * user_ratings[j]
+                        rating += sim
+                        #print("sim ", i, " :", sim)
+                # upate the recomendations
+                tup = (rating, i)
+                #print(len(recs))
+                if len(recs) < k:
+                    recs.append(tup)
+                    #print(recs)
+                    recs.sort(key=lambda x: x[0], reverse=True)
+                    # recs = sorted(recs, key=lambda tup: tup[0])
+                    #print(recs)
+                else:
+                    if rating > recs[len(recs) - 1][0]:
+                        recs[len(recs) - 1] = tup
+                        #print(recs)
+                        recs.sort(key=lambda x: x[0], reverse=True)
+                        # recs.sort(key = lambda x: x[1])
+                        #print(recs)
 
-        # Populate this list with k movie indices to recommend to the user.
         recommendations = []
+        for item in recs:
+            recommendations.append(item[1])
+        # Populate this list with k movie indices to recommend to the user.
 
         ########################################################################
         #                        END OF YOUR CODE                              #
