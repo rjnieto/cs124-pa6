@@ -30,7 +30,7 @@ class Chatbot:
         ########################################################################
 
         # Binarize the movie ratings before storing the binarized matrix.
-        self.ratings = ratings
+        self.ratings = self.binarize(ratings, 2.5)
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################
