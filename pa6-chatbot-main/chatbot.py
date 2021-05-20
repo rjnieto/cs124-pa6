@@ -412,9 +412,6 @@ class Chatbot:
             if source[len(source) - 1] != ')':
                 current_title = current_title[:-7]
 
-            # for testing purposes
-            # current_title = "Ten"
-            # source = "Te"
             # build matrix
             target_list = []
             for c_t in range(len(current_title)):
@@ -454,7 +451,7 @@ class Chatbot:
                     if min_edit_distance < matches_and_distance[0][1]:
                         matches_and_distance.clear()
                         matches_and_distance.append((i, min_edit_distance))
-            # for testing
+        
         matching_indices = []
         for tup in matches_and_distance:
             matching_indices.append(tup[0])
