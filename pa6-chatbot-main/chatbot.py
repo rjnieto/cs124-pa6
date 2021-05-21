@@ -97,10 +97,24 @@ class Chatbot:
         # directly based on how modular it is, we highly recommended writing   #
         # code in a modular fashion to make it easier to improve and debug.    #
         ########################################################################
-        if self.creative:
-            response = "I processed {} in creative mode!!".format(line)
-        else:
-            response = "I processed {} in starter mode!!".format(line)
+        response = "INSERT GENERIC RESPONSE"
+        lowerLine = line.lower().split(' ')
+
+        if lowerLine[0:3] == ['my', 'name', 'is']:
+            self.user = lowerLine[3]
+            response = "It's lovely to meet you " + self.user
+        if "who" in lowerLine:
+            response = "Definitely someone who is a rockstar"
+        if "what" in lowerLine:
+            response = "To be completely honest, I'm not too sure!"
+        if "where" in lowerLine:
+            response = "Probably somewhere super rural...or urban..."
+        if "when" in lowerLine:
+            response = "At a later time...don't rush it"
+        if "why" in lowerLine:
+            response = "Now that I'm thinking of it...I'm not too sure why!"
+        if "how" in lowerLine:
+            response = "Not sure!"
 
         ########################################################################
         #                          END OF YOUR CODE                            #
