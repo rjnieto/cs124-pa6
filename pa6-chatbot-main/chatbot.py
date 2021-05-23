@@ -31,6 +31,16 @@ class Chatbot:
 
         # Binarize the movie ratings before storing the binarized matrix.
         self.ratings = self.binarize(ratings, 2.5)
+        
+        # Create some global variables
+        self.num_data_pts = 0
+        self.movie_data_points = np.zeros(np.shape(self.ratings)[0])
+        # Create list of affirmations later
+
+        # These are all for clarification of misspelled titles
+        self.is_clarifying = False
+        self.clarifying_titles = []
+        self.stored_sentiment = 0
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################
@@ -115,7 +125,66 @@ class Chatbot:
             response = "Now that I'm thinking of it...I'm not too sure why!"
         if "how" in lowerLine:
             response = "Not sure!"
+        
+        if self.is_clarifying:
 
+            # If they say no to the options
+            # Move on and ask again what movies they like
+
+            self.is_clarifying = False
+            line = self.clarifying_titles[int(line)]
+            if self.stored_sentiment == 1:
+                line = "I liked " + "\"" + line + "\""
+            else:
+                line = "I did not like " + "\"" + line + "\""
+
+            self.clarifying_titles.clear()
+        # handles only one movie right now
+
+        # if there are more than one titles for what the user gives, we have to disambiguate
+
+        # if there are no matching titles, then we have to use find_closest
+        print(line)
+        titles = util.load_titles('data/movies.txt')
+        potential_title_in_line = self.extract_titles(line)     # this returns list of titles found
+        response = ""
+        if len(potential_title_in_line) == 1:
+            if len(self.find_movies_by_title(potential_title_in_line[0])) == 0:
+                # edit distance
+                self.is_clarifying = True
+                self.stored_sentiment = self.extract_sentiment(line)
+                close_titles = self.find_movies_closest_to_title(potential_title_in_line[0])
+                print("Did you mean any of the following (Please select number): ")
+                for i in range(len(close_titles)): # currently assuming it's size of one
+                    # Before appending, ensure you edit titles that start with article to
+                    # be in natural format
+
+                    self.clarifying_titles.append(titles[close_titles[i]][0])
+                    print(str(i) + ". " + titles[close_titles[i]][0])
+
+                return response
+
+
+            sentiment = self.extract_sentiment(line)
+            if sentiment == 1:
+                # there might be more than one, then we have to disambiguate
+                list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
+                self.movie_data_points[list_of_indices[0]] = 1  # assuming there is only one index
+                self.num_data_pts += 1
+                response = "Glad you enjoyed " + potential_title_in_line[0] + " !"
+                # update global
+            elif sentiment == 0:
+                response = "I can't tell if you liked " + potential_title_in_line[0] + " or not."
+            else:
+                list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
+                self.movie_data_points[list_of_indices[0]] = -1  # assuming there is only one index
+                self.num_data_pts += 1
+                response = "Sorry to hear you didn't like " + potential_title_in_line[0] + "."
+
+            if self.num_data_pts >= 5:
+                rec = self.recommend(self.movie_data_points, self.ratings)
+                first_rec = rec[0]
+                response += "\nHere is a recommendation for you: " + titles[first_rec][0]
         ########################################################################
         #                          END OF YOUR CODE                            #
         ########################################################################
