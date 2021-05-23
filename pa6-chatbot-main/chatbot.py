@@ -658,6 +658,12 @@ class Chatbot:
         #                          END OF YOUR CODE                            #
         ########################################################################
         return similarity
+        
+    def normalize(self, matrix):
+        magnitude_r = np.sum(matrix * matrix, axis=1) ** 0.5
+        #this stops zero division 
+        magnitude_r = np.maximum(magnitude_r, np.array(1e-20))
+        return matrix / magnitude_r[:, np.newaxis]
 
     def recommend(self, user_ratings, ratings_matrix, k=10, creative=False):
         """Generate a list of indices of movies to recommend using collaborative
@@ -681,7 +687,7 @@ class Chatbot:
         :returns: a list of k movie indices corresponding to movies in
         ratings_matrix, in descending order of recommendation.
         """
-        
+
         ########################################################################
         # TODO: Implement a recommendation function that takes a vector        #
         # user_ratings and matrix ratings_matrix and outputs a list of movies  #
@@ -694,48 +700,32 @@ class Chatbot:
         # with cosine similarity, no mean-centering, and no normalization of   #
         # scores.                                                              #
         ########################################################################
-        recs = []
-        # for each movie
-        for i in range(len(ratings_matrix)):
-            # if the user hasn't rated that movie
-            if user_ratings[i] == 0:
-                # get the ratings_vector for movie i
-                r2 = ratings_matrix[i]
-                rating = 0
-                # cos-sim of mov i with all movies user rated
-                for j in range(len(user_ratings)):
-                    # only look at ones user has rated
-                    if user_ratings[j] != 0:
-                        # retrieve cosine similarity
-                        sim = Chatbot.similarity(self, ratings_matrix[j], r2) * user_ratings[j]
-                        rating += sim
-                        #print("sim ", i, " :", sim)
-                # upate the recomendations
-                tup = (rating, i)
-                #print(len(recs))
-                if len(recs) < k:
-                    recs.append(tup)
-                    #print(recs)
-                    recs.sort(key=lambda x: x[0], reverse=True)
-                    # recs = sorted(recs, key=lambda tup: tup[0])
-                    #print(recs)
-                else:
-                    if rating > recs[len(recs) - 1][0]:
-                        recs[len(recs) - 1] = tup
-                        #print(recs)
-                        recs.sort(key=lambda x: x[0], reverse=True)
-                        # recs.sort(key = lambda x: x[1])
-                        #print(recs)
 
-        recommendations = []
-        for item in recs:
-            recommendations.append(item[1])
         # Populate this list with k movie indices to recommend to the user.
+
+        recs = []
+
+        rated_movies = ratings_matrix[user_ratings != 0, :]
+        rated_movies = self.normalize(rated_movies)
+        ratings_matrix = self.normalize(ratings_matrix)
+        sim_matrix = np.dot(ratings_matrix, np.transpose(rated_movies))
+        ratings = user_ratings[user_ratings != 0]
+        scores_array = np.dot(sim_matrix, ratings)
+        scores_array = np.reshape(scores_array, (-1))
+        #descneding order
+        sorted_indexes = np.argsort(scores_array)[::-1]
+        for ind in sorted_indexes:
+            if user_ratings[ind] != 0:
+                continue
+            else:
+                recs.append(ind)
+            if len(recs) == k:
+                break
 
         ########################################################################
         #                        END OF YOUR CODE                              #
         ########################################################################
-        return recommendations
+        return recs
 
     ############################################################################
     # 4. Debug info                                                            #
