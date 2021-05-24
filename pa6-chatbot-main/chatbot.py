@@ -50,6 +50,7 @@ class Chatbot:
         # The following is for when there are no quotes
         # in the user's input
         self.no_quotes = False
+        self.user = ""
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################
