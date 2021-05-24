@@ -502,7 +502,7 @@ class Chatbot:
         """
         #print("\n")
         words = self.tokenize(preprocessed_input)
-        print(words)
+        #print(words)
 
         movies = []
         movie_count = 0
