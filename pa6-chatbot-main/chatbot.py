@@ -148,7 +148,7 @@ class Chatbot:
         titles = util.load_titles('data/movies.txt')
         potential_title_in_line = self.extract_titles(line)     # this returns list of titles found
         response = ""
-        if len(potential_title_in_line) == 1:
+        if len(potential_title_in_line) > 0:
             if len(self.find_movies_by_title(potential_title_in_line[0])) == 0:
                 # edit distance
                 self.is_clarifying = True
