@@ -438,6 +438,8 @@ class Chatbot:
                         total += -1 * coe
 
         return total
+    
+    
     def tokenize(self, preprocessed_input):
         str = preprocessed_input
         words = [""]
