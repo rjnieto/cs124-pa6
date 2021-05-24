@@ -245,15 +245,47 @@ class Chatbot:
         extracted_titles = []
         new_substring = preprocessed_input
         curr_index = new_substring.find("\"")
-        while curr_index != -1:
-            new_substring = new_substring[curr_index + 1:]
-            end_index = new_substring.find("\"")
-            if end_index != -1:
-                extracted_titles.append(new_substring[0:end_index])
-                new_substring = new_substring[end_index + 1:]
-                curr_index = new_substring.find("\"")
-            else:
-                break
+        if curr_index == -1:
+            titles = util.load_titles('data/movies.txt')
+            articles = [", The", ", An", ", A"]
+            for i in range(len(titles)):
+                curr_title_date = titles[i][0]  # with year
+                curr_title_no_date = curr_title_date[0:len(titles[i][0]) - 7]   # without year
+                curr_article_title_date = ""
+                curr_article_title_no_date = ""
+                starts_with_article = False
+                date = curr_title_date[len(curr_title_date) - 6:]
+                comma_index = curr_title_no_date.rfind(",")
+                if comma_index != -1:
+                    if curr_title_no_date[comma_index:] in articles:
+                        starts_with_article = True
+                        # make into natural string, without and with date
+                        first_segment = curr_title_no_date[comma_index + 2:]
+                        second_segment = curr_title_no_date[0:comma_index]
+                        curr_article_title_no_date = first_segment + " " + second_segment
+                        curr_article_title_date = curr_article_title_no_date + " " + date
+
+                if curr_title_date in preprocessed_input:
+                    extracted_titles.append(curr_title_date)
+                elif curr_title_no_date in preprocessed_input:
+                    # ensure you don't add it if same movie but with
+                    # date has been added
+                    extracted_titles.append(curr_title_no_date)
+                if starts_with_article:
+                    if curr_article_title_date in preprocessed_input:
+                        extracted_titles.append(curr_article_title_date)
+                    if curr_article_title_no_date in preprocessed_input:
+                        extracted_titles.append(curr_article_title_no_date)
+        else:
+            while curr_index != -1:
+                new_substring = new_substring[curr_index + 1:]
+                end_index = new_substring.find("\"")
+                if end_index != -1:
+                    extracted_titles.append(new_substring[0:end_index])
+                    new_substring = new_substring[end_index + 1:]
+                    curr_index = new_substring.find("\"")
+                else:
+                    break
 
         return extracted_titles
 
