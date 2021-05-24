@@ -427,29 +427,27 @@ class Chatbot:
 
     def extract_sentiment(self, preprocessed_input):
         """Extract a sentiment rating from a line of pre-processed text.
-
         You should return -1 if the sentiment of the text is negative, 0 if the
         sentiment of the text is neutral (no sentiment detected), or +1 if the
         sentiment of the text is positive.
-
         As an optional creative extension, return -2 if the sentiment of the
         text is super negative and +2 if the sentiment of the text is super
         positive.
-
         Example:
           sentiment = chatbot.extract_sentiment(chatbot.preprocess(
                                                     'I liked "The Titanic"'))
           print(sentiment) // prints 1
-
         :param preprocessed_input: a user-supplied line of text that has been
         pre-processed with preprocess()
         :returns: a numerical value for the sentiment of the text
         """
-        #make a tokenizer
+
+        print("\n")
+        # make a tokenizer
         str = preprocessed_input
         words = [""]
         j = 0
-        #to separate these forms of punctuation
+        # to separate these forms of punctuation
         delimiters = ['"', '"', ',', '.']
         for i in range(len(str)):
             if str[i] in delimiters:
@@ -461,57 +459,66 @@ class Chatbot:
                     j += 2
                 if i != len(str) - 1:
                     words.append("")
-                #print("Done \n\n")
+                # print("Done \n\n")
             elif str[i] != ' ':
                 words[j] += str[i]
             else:
                 if words[j] != "":
                     words.append("")
                     j += 1
-        #list of words done
+        # list of words done
 
         # sentiment evaluation
         total = 0
-        #negation coefficient
+        # negation coefficient
         coe = 1
-        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont", "can't", "couldn't"]
+        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
+                          "can't", "couldn't"]
+        amplifiers = ["really", "super", "dreadfully", "totally"]
+        stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal"]
+        factor = 1
         movie_title = False
         stemmer = PorterStemmer()
         for word in words:
-            #negation words flip sentiment meaning
-            if word in negation_words:
+            # negation words flip sentiment meaning
+            if word in negation_words and movie_title == False:
                 coe = -1
-            #so the words in the movie dont influence overall text sentiment
+            # so the words in the movie dont influence overall text sentiment
+            if (word in stronger_words or word in amplifiers) and movie_title == False:
+                factor = 2
             elif word == '"' or word == '"':
-                #switch to false if previously true
+                # switch to false if previously true
                 if movie_title:
                     movie_title = False
-                #switch to true if previously false
+                # switch to true if previously false
                 else:
                     movie_title = True
 
             if word in self.sentiment and not movie_title:
                 sent = self.sentiment[word]
-                #add to total and multiply by negation coefficient
+                # add to total and multiply by negation coefficient
                 if sent == "pos":
-                    total += 1 * coe
+                    total += 1 * coe * factor
                 if sent == "neg":
-                    total += -1 * coe
+                    total += -1 * coe * factor
 
             else:
                 word2 = stemmer.stem(word, 0, len(word) - 1)
-                #doesnt stem enjoy correctly because who knows
+                # doesnt stem enjoy correctly because who knows
+                if (word2 in stronger_words or word2 in amplifiers) and movie_title == False:
+                    factor = 2
                 if word2 == "enjoi":
                     word2 = "enjoy"
-                #print(word2)
+                # print(word2)
                 if word2 in self.sentiment and not movie_title:
                     sent = self.sentiment[word2]
-                    #add to total and multiply by negation coefficient
+                    # add to total and multiply by negation coefficient
                     if sent == "pos":
-                        total += 1 * coe
+                        total += 1 * coe * factor
                     if sent == "neg":
-                        total += -1 * coe
-
+                        total += -1 * coe * factor
+        print("Word List: ", words)
+        print("Sentiment Score: ", total)
         return total
     
     
