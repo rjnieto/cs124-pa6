@@ -135,7 +135,7 @@ class Chatbot:
         if "how" in lowerLine:
             response = "Not sure!"
         
-                if self.is_clarifying:
+        if self.is_clarifying:
             # If they say no to the options
             # Move on and ask again what movies they like
 
