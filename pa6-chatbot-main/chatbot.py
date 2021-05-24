@@ -442,7 +442,7 @@ class Chatbot:
         :returns: a numerical value for the sentiment of the text
         """
 
-        print("\n")
+        #print("\n")
         # make a tokenizer
         str = preprocessed_input
         words = [""]
@@ -517,8 +517,8 @@ class Chatbot:
                         total += 1 * coe * factor
                     if sent == "neg":
                         total += -1 * coe * factor
-        print("Word List: ", words)
-        print("Sentiment Score: ", total)
+        #print("Word List: ", words)
+        #print("Sentiment Score: ", total)
         return total
     
     
