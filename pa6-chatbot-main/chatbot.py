@@ -438,29 +438,130 @@ class Chatbot:
                         total += -1 * coe
 
         return total
+    def tokenize(self, preprocessed_input):
+        str = preprocessed_input
+        words = [""]
+        j = 0
+        # to separate these forms of punctuation
+        movie_title = False
+        delimiters = [',', '.']
+        movie_delimiters = ['"', '"']
+        for i in range(len(str)):
+            if str[i] in movie_delimiters:
+                if movie_title:
+                    movie_title = False
+                    words[j] += str[i]
+                    words.append("")
+                    j += 1
+                else:
+                    movie_title = True
+                    words[j] += str[i]
+
+            else:
+                if movie_title:
+                    words[j] += str[i]
+                else:
+                    if str[i] in delimiters:
+                        if words[j] == "":
+                            words[j] = str[i]
+                            j += 1
+                        else:
+                            words.append(str[i])
+                            j += 2
+                        if i != len(str) - 1:
+                            words.append("")
+                            # print("Done \n\n")
+                    elif str[i] != ' ':
+                        words[j] += str[i]
+                    else:
+                        if words[j] != "":
+                            words.append("")
+                            j += 1
+        # list of words done
+
+        return words
 
     def extract_sentiment_for_movies(self, preprocessed_input):
         """Creative Feature: Extracts the sentiments from a line of
         pre-processed text that may contain multiple movies. Note that the
         sentiments toward the movies may be different.
-
         You should use the same sentiment values as extract_sentiment, described
-
         above.
         Hint: feel free to call previously defined functions to implement this.
-
         Example:
           sentiments = chatbot.extract_sentiment_for_text(
                            chatbot.preprocess(
                            'I liked both "Titanic (1997)" and "Ex Machina".'))
           print(sentiments) // prints [("Titanic (1997)", 1), ("Ex Machina", 1)]
-
         :param preprocessed_input: a user-supplied line of text that has been
         pre-processed with preprocess()
         :returns: a list of tuples, where the first item in the tuple is a movie
         title, and the second is the sentiment in the text toward that movie
         """
-        pass
+        #print("\n")
+        words = self.tokenize(preprocessed_input)
+        print(words)
+
+        movies = []
+        movie_count = 0
+        # sentiment evaluation
+        total = 0
+        # negation coefficient
+        coe = 1
+        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
+                          "can't", "couldn't"]
+        stemmer = PorterStemmer()
+        switch_before_end = False
+        for word in words:
+            # negation words flip sentiment meaning
+            if word == '.' and switch_before_end:
+                name = ""
+                points = 0
+                for key, val in movies[len(movies) - 1].items():
+                    name = key
+                    points = val
+                points = total * coe
+                movies[len(movies) - 1].update({name: points})
+            if word in negation_words:
+                coe = coe * -1
+            # so the words in the movie dont influence overall text sentiment
+            elif word[0] == '"' or word[0] == '"':
+                # switch to false if previously true
+                movies.append({word[1:len(word) - 1]: total * coe})
+                switch_before_end = False
+                #print("switch before end", switch_before_end)
+                movie_count += 1
+
+            if word in self.sentiment:
+                sent = self.sentiment[word]
+                # add to total and multiply by negation coefficient
+                if sent == "pos":
+                    total = 1
+                    switch_before_end = True
+                    #print("switch before end", switch_before_end)
+                if sent == "neg":
+                    total = -1
+
+            else:
+                word2 = stemmer.stem(word, 0, len(word) - 1)
+                # doesnt stem enjoy correctly because who knows
+                if word2 == "enjoi":
+                    word2 = "enjoy"
+                # print(word2)
+                if word2 in self.sentiment:
+                    sent = self.sentiment[word2]
+                    # add to total and multiply by negation coefficient
+                    if sent == "pos":
+                        total += 1 * coe
+                    if sent == "neg":
+                        total += -1 * coe
+
+        tuple_list = []
+        for i in range(len(movies)):
+            for key, val in movies[i].items():
+                tuple_list.append((key, val))
+
+        return tuple_list
 
     def find_movies_closest_to_title(self, title, max_distance=3):
         """Creative Feature: Given a potentially misspelled movie title,
