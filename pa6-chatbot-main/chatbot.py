@@ -36,11 +36,20 @@ class Chatbot:
         self.num_data_pts = 0
         self.movie_data_points = np.zeros(np.shape(self.ratings)[0])
         # Create list of affirmations later
-
+        
+        # Create list of affirmations later
+        self.affirmations = ["yes", "yeah", "yup", "sure", "ya", "ye", "that's right", "correct", "sure"]
+        self.refutations = ["no", "nah", "nope"]
+        
         # These are all for clarification of misspelled titles
         self.is_clarifying = False
         self.clarifying_titles = []
         self.stored_sentiment = 0
+        self.yes_or_no = False
+
+        # The following is for when there are no quotes
+        # in the user's input
+        self.no_quotes = False
         ########################################################################
         #                             END OF YOUR CODE                         #
         ########################################################################
@@ -126,13 +135,28 @@ class Chatbot:
         if "how" in lowerLine:
             response = "Not sure!"
         
-        if self.is_clarifying:
-
+                if self.is_clarifying:
             # If they say no to the options
             # Move on and ask again what movies they like
 
             self.is_clarifying = False
-            line = self.clarifying_titles[int(line)]
+            self.no_quotes = False
+            if self.yes_or_no:
+                self.yes_or_no = False
+                if line.lower() in self.affirmations:
+                    line = self.clarifying_titles[0]
+                elif line.lower() in self.refutations:
+                    # Do something like I'm sorry, can you please enter another movie
+                    response = "I'm sorry about that, it may have been unclear. Can you please tell me about another movie or be more specific/clear?"
+                    self.clarifying_titles.clear()
+                    return response
+                else:
+                    self.is_clarifying = True
+                    self.yes_or_no = True
+                    response = "Is that a yes or a no?"
+                    return response
+            else:
+                line = self.clarifying_titles[int(line)]
             if self.stored_sentiment == 1:
                 line = "I liked " + "\"" + line + "\""
             else:
@@ -144,18 +168,63 @@ class Chatbot:
         # if there are more than one titles for what the user gives, we have to disambiguate
 
         # if there are no matching titles, then we have to use find_closest
-        print(line)
+        # print(line)
         titles = util.load_titles('data/movies.txt')
         potential_title_in_line = self.extract_titles(line)     # this returns list of titles found
+        # print(self.find_movies_by_title(titles[potential_title_in_line[0]][0]))
+        # use find_movies_by_title
+        # for x in range(len(potential_title_in_line)):
+        # print(potential_title_in_line)
         response = ""
+        if self.no_quotes:
+            # print("london")
+            if len(potential_title_in_line) > 0:
+                self.is_clarifying = True
+                self.stored_sentiment = self.extract_sentiment(line)
+                if len(potential_title_in_line) == 1:
+                    self.yes_or_no = True
+                    response = "Just to clarify, did you mean this movie above?"
+                else:
+                    response = "Hmmm, did you mean any of these movies above? (Please select number above): "
+                for i in range(len(potential_title_in_line)):
+                    self.clarifying_titles.append(potential_title_in_line[i])
+                    if self.yes_or_no:
+                        print(potential_title_in_line)
+                    else:
+                        print(str(i) + ". " + potential_title_in_line[i])
+            return response
+        # print(potential_title_in_line)
         if len(potential_title_in_line) > 0:
-            if len(self.find_movies_by_title(potential_title_in_line[0])) == 0:
+            potential_movies = self.find_movies_by_title(potential_title_in_line[0])    # again, for now there is only one, not dealing with multiple movies in same input
+
+            if len(potential_movies) > 1:
+                # if it's in quotes but if there's no date and there are more than 1
+                self.is_clarifying = True
+                self.stored_sentiment = self.extract_sentiment(line)
+                # print("london")
+                response = "There is more than one movie named " + potential_title_in_line[0] + "." + " Which one did you mean? (Please select number above): "
+                articles = [", The", ", An", ", A"]
+                for i in range(len(potential_movies)):
+                    curr_title = titles[potential_movies[i]][0]
+                    dateless_curr_title = curr_title[0:len(curr_title) - 7]
+                    if dateless_curr_title[len(dateless_curr_title) - 5:] in articles:
+                        # We have to rearrange
+                        first_segment = dateless_curr_title[len(dateless_curr_title) - 3:]
+                        second_segment = dateless_curr_title[0:len(dateless_curr_title) - 5]
+                        third_segment = curr_title[len(curr_title) - 6:]
+                        curr_title = first_segment + " " + second_segment + " " + third_segment
+                    self.clarifying_titles.append(curr_title)
+                    print(str(i) + ". " + curr_title)
+                return response
+            if len(potential_movies) == 0:
                 # edit distance
+                # this segment is clarifying based on a misspelled word
+                print("You might have misspelled the title, wait a few seconds so I can fetch something you may be looking for...")
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 close_titles = self.find_movies_closest_to_title(potential_title_in_line[0])
-                print("Did you mean any of the following (Please select number): ")
-                for i in range(len(close_titles)): # currently assuming it's size of one
+                response = "Did you mean any of the following (Please select number above): "
+                for i in range(len(close_titles)):  # currently assuming it's size of one
                     # Before appending, ensure you edit titles that start with article to
                     # be in natural format
 
@@ -163,9 +232,8 @@ class Chatbot:
                     print(str(i) + ". " + titles[close_titles[i]][0])
 
                 return response
-
-
             sentiment = self.extract_sentiment(line)
+            # May have to change values for checks in if statements
             if sentiment == 1:
                 # there might be more than one, then we have to disambiguate
                 list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
@@ -185,6 +253,7 @@ class Chatbot:
                 rec = self.recommend(self.movie_data_points, self.ratings)
                 first_rec = rec[0]
                 response += "\nHere is a recommendation for you: " + titles[first_rec][0]
+
         ########################################################################
         #                          END OF YOUR CODE                            #
         ########################################################################
@@ -246,6 +315,7 @@ class Chatbot:
         new_substring = preprocessed_input
         curr_index = new_substring.find("\"")
         if curr_index == -1:
+            self.no_quotes = True
             titles = util.load_titles('data/movies.txt')
             articles = [", The", ", An", ", A"]
             for i in range(len(titles)):
@@ -266,16 +336,21 @@ class Chatbot:
                         curr_article_title_date = curr_article_title_no_date + " " + date
 
                 if curr_title_date in preprocessed_input:
+                    extracted_titles.clear()
                     extracted_titles.append(curr_title_date)
+                    break
                 elif curr_title_no_date in preprocessed_input:
                     # ensure you don't add it if same movie but with
                     # date has been added
-                    extracted_titles.append(curr_title_no_date)
+                    # extracted_titles.append(curr_title_no_date)
+                    extracted_titles.append(curr_title_date)
                 if starts_with_article:
                     if curr_article_title_date in preprocessed_input:
+                        extracted_titles.clear()
                         extracted_titles.append(curr_article_title_date)
+                        break
                     if curr_article_title_no_date in preprocessed_input:
-                        extracted_titles.append(curr_article_title_no_date)
+                        extracted_titles.append(curr_article_title_date)
         else:
             while curr_index != -1:
                 new_substring = new_substring[curr_index + 1:]
@@ -288,7 +363,7 @@ class Chatbot:
                     break
 
         return extracted_titles
-
+    
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
 
