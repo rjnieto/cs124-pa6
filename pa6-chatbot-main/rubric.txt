@@ -48,7 +48,16 @@ that they were written by a human.
 What are some possible ramifications of anthropomorphizing chatbot systems? Can you think of any ways that 
 engineers could ensure that users can easily distinguish the chatbot responses from those of a human?
 
+#########################################################################################
 
+With chatbot systems that replicate human behavior too much, there might be less of a necessity for human jobs.
+For example, chatbots that replicate human therapists can take jobs out from humans and put them out of work.
+Additionally, chatbots rely on accuracy and training sets rather than human experience. This is different from humans
+who have prior life experience that can affect the conversations with patients.
+
+Chatbots can explicitly state at the beginning of beginning of a conversation a disclaimer that they are a chatbot
+to remind users that they are not human. Although the goal for programmers is to have their chatbots as human-like
+as possible, it is important to make the distinction prior to the conversation.
 
 #########################################################################################
 # Optional: Feel free to include anything else that you want us to know about your      #
