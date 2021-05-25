@@ -18,7 +18,7 @@ class Chatbot:
         self.name = 'randi'
 
         self.creative = creative
-
+        # self.creative = True
         # This matrix has the following shape: num_movies x num_users
         # The values stored in each row i and column j is the rating for
         # movie i by user j
@@ -250,8 +250,7 @@ class Chatbot:
             if len(potential_movies) == 0:
                 # edit distance
                 # this segment is clarifying based on a misspelled word
-                print(
-                    "You might have misspelled the title, wait a few seconds so I can fetch something you may be looking for...")
+                print("You might have misspelled the title, wait a few seconds so I can fetch something you may be looking for...")
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 close_titles = self.find_movies_closest_to_title(potential_title_in_line[0])
@@ -492,6 +491,11 @@ class Chatbot:
             if edited_title.lower() == cur.lower() or title.lower() == cur.lower():  # in the case that article isn't moved to end
                 matches.append(i)
                 # print(titles[i])
+            else:
+                if self.creative:
+                    # print("london")
+                    if (edited_title.lower() in cur.lower()) or (title.lower() in cur.lower()):
+                        matches.append(i)
         return matches
 
     def extract_sentiment(self, preprocessed_input):
