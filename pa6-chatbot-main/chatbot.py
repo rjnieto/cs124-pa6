@@ -562,7 +562,7 @@ class Chatbot:
         coe = 1
         negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
                           "can't", "couldn't", "nothing", "nobody", "hadn't"]
-        amplifiers = ["really", "super", "dreadfully", "totally", "never", "passionately", "desperately", "genuinely", "undoubtedly", "truly",
+        amplifiers = ["really", "reeally", "reaally", "super", "suuper", "suuuper", "dreadfully", "totally", "tootally", "never", "passionately", "desperately", "genuinely", "undoubtedly", "truly",
                       "honestly"]
         stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal", "atrocious", "appalling", "hate", "vile", "deplorable",
                           "appreciate", "passionate", "enjoy"]
