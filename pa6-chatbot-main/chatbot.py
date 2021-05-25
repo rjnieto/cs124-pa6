@@ -169,7 +169,7 @@ class Chatbot:
             if lowerLine[0:2] == ['i', 'am']:
                 response = "Ah, must be CRAZY to be " + lowerLine[2]
                 return response
-            if lowerLine[0:2] == ['thank', 'you']:
+            if lowerLine[0:2] == ['thank', 'you'] or lowerLine[0] == ['thanks']:
                 response = "No, thank you!"
                 return response
             if lowerLine[0:2] == ["what's", 'up']:
