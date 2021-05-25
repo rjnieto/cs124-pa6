@@ -681,8 +681,8 @@ class Chatbot:
         total = 0
         # negation coefficient
         coe = 1
-        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
-                          "can't", "couldn't"]
+        negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
+                          "can't", "couldn't", "nothing", "nobody", "hadn't"]
         stemmer = PorterStemmer()
         switch_before_end = False
         for word in words:
