@@ -15,12 +15,12 @@ FEATURE - Disambiguation (part 1): YES
 FEATURE - Fine-grained sentiment extraction: YES
 FEATURE - Spell-correcting fallback for find_movies_by_title: YES
 FEATURE - Extracting sentiment with multiple-movie input: NO
-FEATURE - Disambiguation (part 2): NO
+FEATURE - Disambiguation (part 2): YES
 FEATURE - Disambiguation (part 3): NO
 FEATURE - Dialogue for spell-checking: YES
 FEATURE - Dialogue for disambiguation: NO
 FEATURE - Communicating sentiments and movies extracted to the user given multiple-movie input: YES
-FEATURE - Understanding references to things said previously: NO
+FEATURE - Understanding references to things said previously: YES
 FEATURE - Responding to arbitrary input: YES
 FEATURE - Speaking very fluently: YES
 FEATURE - Identifying and responding to emotions: NO
@@ -29,13 +29,13 @@ Did not implement any of the above features: NO
 #########################################################################################
 # Team Contributions                                                                    #
 #########################################################################################
-TODO: Please write a short description of what each team member contributed!
+
+We all participated and contributed to this assignment equally!
 
 
 #########################################################################################
 # Ethics Question                                                                  #
 #########################################################################################
-TODO: Please answer the following question:
 
 Humans are quick to anthropomorphize chatbots, like ELIZA. 
 In the 1960’s, users’ trust in ELIZA raised numerous concerns that humans would believe the system’s advice, 
@@ -58,6 +58,8 @@ who have prior life experience that can affect the conversations with patients.
 Chatbots can explicitly state at the beginning of beginning of a conversation a disclaimer that they are a chatbot
 to remind users that they are not human. Although the goal for programmers is to have their chatbots as human-like
 as possible, it is important to make the distinction prior to the conversation.
+
+
 
 #########################################################################################
 # Optional: Feel free to include anything else that you want us to know about your      #
