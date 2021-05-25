@@ -65,7 +65,7 @@ class Chatbot:
         # TODO: Write a short greeting message                                 #
         ########################################################################
 
-        greeting_message = "What's up! I'm Randi your person movie recommending assistant. Lets start out by identifying your movie preferences. Tell me about a movie you like or dislike."
+        greeting_message = "What's up! I'm Randi your personal movie recommending assistant. Lets start out by identifying your movie preferences. Tell me about a movie you like or dislike."
 
         ########################################################################
         #                             END OF YOUR CODE                         #
