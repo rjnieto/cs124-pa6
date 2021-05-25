@@ -182,7 +182,7 @@ class Chatbot:
                 response = "Wow that means you are " + lowerLine[0] + " years older than me!"
                 return response
             if lowerLine[0:3] == ['how', 'are', 'you']:
-                response = "Great! How do you feel? "
+                response = "Great! "
                 return response
             if lowerLine[0:2] == ['i', 'feel']:
                 response = "Ah, must be CRAZY to feel " + lowerLine[2]
