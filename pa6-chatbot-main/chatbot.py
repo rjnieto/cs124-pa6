@@ -135,7 +135,7 @@ class Chatbot:
             response = "Now that I'm thinking of it...I'm not too sure why!"
         if "how" in lowerLine:
             response = "Not sure!"
-        
+
         if self.is_clarifying:
             # If they say no to the options
             # Move on and ask again what movies they like
@@ -179,6 +179,12 @@ class Chatbot:
         response = ""
         if self.no_quotes:
             # print("london")
+            if len(potential_title_in_line) == 0:
+                # if empty, say try again
+                response = "Sorry, I can't find any matching movie titles. Please let me know of another movie or check your spelling/accuracy."
+                # self.is_clarifying = False
+                self.no_quotes = False
+                return response
             if len(potential_title_in_line) > 0:
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
@@ -208,12 +214,15 @@ class Chatbot:
                 for i in range(len(potential_movies)):
                     curr_title = titles[potential_movies[i]][0]
                     dateless_curr_title = curr_title[0:len(curr_title) - 7]
-                    if dateless_curr_title[len(dateless_curr_title) - 5:] in articles:
-                        # We have to rearrange
-                        first_segment = dateless_curr_title[len(dateless_curr_title) - 3:]
-                        second_segment = dateless_curr_title[0:len(dateless_curr_title) - 5]
-                        third_segment = curr_title[len(curr_title) - 6:]
-                        curr_title = first_segment + " " + second_segment + " " + third_segment
+                    # Fix this, you have to find the comma and than compare until the end, 5 is only for ", The"
+                    comma_index = dateless_curr_title.rfind(",")
+                    if comma_index != -1:
+                        if dateless_curr_title[comma_index:] in articles:
+                            # We have to rearrange
+                            first_segment = dateless_curr_title[comma_index + 2:]
+                            second_segment = dateless_curr_title[0:comma_index]
+                            third_segment = curr_title[len(curr_title) - 6:]
+                            curr_title = first_segment + " " + second_segment + " " + third_segment
                     self.clarifying_titles.append(curr_title)
                     print(str(i) + ". " + curr_title)
                 return response
@@ -224,15 +233,29 @@ class Chatbot:
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 close_titles = self.find_movies_closest_to_title(potential_title_in_line[0])
-                response = "Did you mean any of the following (Please select number above): "
-                for i in range(len(close_titles)):  # currently assuming it's size of one
-                    # Before appending, ensure you edit titles that start with article to
-                    # be in natural format
-
-                    self.clarifying_titles.append(titles[close_titles[i]][0])
-                    print(str(i) + ". " + titles[close_titles[i]][0])
-
+                # this is where you need to add if statement
+                if len(close_titles) > 0:
+                    response = "Did you mean any of the following (Please select number above): "
+                    for i in range(len(close_titles)):  # currently assuming it's size of one
+                        # Before appending, ensure you edit titles that start with article to
+                        # be in natural format
+                        curr_close_title = titles[close_titles[i]][0]
+                        dateless_curr_close_title = curr_close_title[0:len(curr_close_title) - 7]
+                        special_articles = [", The", ", An", ", A"]
+                        comma_i = curr_close_title.rfind(",")
+                        if comma_i != -1:
+                            if dateless_curr_close_title[comma_i:] in special_articles:
+                                first_part = dateless_curr_close_title[comma_i + 2:]
+                                second_part = dateless_curr_close_title[0:comma_i]
+                                third_part = curr_close_title[len(curr_close_title) - 6:]
+                                curr_close_title = first_part + " " + second_part + " " + third_part
+                        self.clarifying_titles.append(curr_close_title)
+                        print(str(i) + ". " + curr_close_title)
+                else:
+                    self.is_clarifying = False
+                    response = "Sorry, I can't find any matching movie titles. Please let me know of another movie or check your spelling/accuracy."
                 return response
+
             sentiment = self.extract_sentiment(line)
             # May have to change values for checks in if statements
             if sentiment == 1:
@@ -240,7 +263,19 @@ class Chatbot:
                 list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
                 self.movie_data_points[list_of_indices[0]] = 1  # assuming there is only one index
                 self.num_data_pts += 1
-                response = "Glad you enjoyed " + potential_title_in_line[0] + " !"
+                clean_title = titles[list_of_indices[0]][0]
+                dateless_clean_title = clean_title[0:len(clean_title) - 7]
+                special_clean_articles = [", The", ", An", ", A"]
+                comma_loc = clean_title.rfind(",")
+
+                if comma_loc != -1:
+                    if dateless_clean_title[comma_loc:] in special_clean_articles:
+                        part_1 = dateless_clean_title[comma_loc + 2:]
+                        part_2 = dateless_clean_title[0:comma_loc]
+                        part_3 = clean_title[len(clean_title) - 6:]
+                        clean_title = part_1 + " " + part_2 + " " + part_3
+
+                response = "Glad you enjoyed " + clean_title + "!"
                 # update global
             elif sentiment == 0:
                 response = "I can't tell if you liked " + potential_title_in_line[0] + " or not."
@@ -259,7 +294,7 @@ class Chatbot:
         #                          END OF YOUR CODE                            #
         ########################################################################
         return response
-
+    
     @staticmethod
     def preprocess(text):
         """Do any general-purpose pre-processing before extracting information
@@ -336,21 +371,21 @@ class Chatbot:
                         curr_article_title_no_date = first_segment + " " + second_segment
                         curr_article_title_date = curr_article_title_no_date + " " + date
 
-                if curr_title_date in preprocessed_input:
+                if curr_title_date.lower() in preprocessed_input.lower():
                     extracted_titles.clear()
                     extracted_titles.append(curr_title_date)
                     break
-                elif curr_title_no_date in preprocessed_input:
+                elif curr_title_no_date.lower() in preprocessed_input.lower():
                     # ensure you don't add it if same movie but with
                     # date has been added
                     # extracted_titles.append(curr_title_no_date)
                     extracted_titles.append(curr_title_date)
                 if starts_with_article:
-                    if curr_article_title_date in preprocessed_input:
+                    if curr_article_title_date.lower() in preprocessed_input.lower():
                         extracted_titles.clear()
                         extracted_titles.append(curr_article_title_date)
                         break
-                    if curr_article_title_no_date in preprocessed_input:
+                    if curr_article_title_no_date.lower() in preprocessed_input.lower():
                         extracted_titles.append(curr_article_title_date)
         else:
             while curr_index != -1:
@@ -392,7 +427,7 @@ class Chatbot:
         ###############################################
         titles = util.load_titles('data/movies.txt')
         matches = []
-
+        # print(titles)
         edited_title = ""
         articles = ["The", "An", "A"]
         first_word = title.split()[0]
@@ -404,26 +439,25 @@ class Chatbot:
                 # second segment is article with the appropriate comma and spaces
                 second_segment = ", " + first_word + " "
                 # third segment is year (with parentheses)
-                third_segment = title[len(title)-6:]
+                third_segment = title[len(title) - 6:]
                 edited_title = first_segment + second_segment + third_segment
             else:
                 first_segment = title[(len(first_word) + 1):]
                 second_segment = ", " + first_word
                 edited_title = first_segment + second_segment
+            # print(edited_title)
         else:
             edited_title = title
-
 
         for i in range(len(titles)):
             cur = titles[i][0]
 
             if '(' not in edited_title:
                 cur = cur[:-7]
-                #print(cur)
-            if edited_title == cur or title == cur:     # in the case that article isn't moved to end
+                # print(cur)
+            if edited_title.lower() == cur.lower() or title.lower() == cur.lower():     # in the case that article isn't moved to end
                 matches.append(i)
-                #print(titles[i])
-
+                # print(titles[i])
         return matches
 
     def extract_sentiment(self, preprocessed_input):
@@ -675,44 +709,43 @@ class Chatbot:
         titles = util.load_titles('data/movies.txt')
         matches_and_distance = []
 
-        edited_title = ""
-        articles = ["The", "An", "A"]
-        first_word = title.split()[0]
-        if first_word in articles:
-            # if the title query has date
-            if title[-1] == ')':
-                # first segment is title without article
-                first_segment = title[(len(first_word) + 1):(len(title) - 7)]
-                # second segment is article with the appropriate comma and spaces
-                second_segment = ", " + first_word + " "
-                # third segment is year (with parentheses)
-                third_segment = title[len(title) - 6:]
-                edited_title = first_segment + second_segment + third_segment
-            else:
-                first_segment = title[(len(first_word) + 1):]
-                second_segment = ", " + first_word
-                edited_title = first_segment + second_segment
-        else:
-            edited_title = title
-
+        articles = [", The", ", An", ", A"]
+        user_input_title = title
+        has_date = False
+        if user_input_title[len(user_input_title) - 1] == ")":
+            has_date = True
         for i in range(len(titles)):
             current_title = titles[i][0]    # target
             # check whether the title has article first or not, because not
             # all do the weird title thing
-            source = ""
-            if current_title.split()[0] in articles:
-                source = title
+            source = user_input_title
+            curr_title_no_date = current_title[0:len(current_title) - 7]
+            comma_index = curr_title_no_date.rfind(",")
+            if has_date:
+                # create current_title in format with date
+                if comma_index != -1:
+                    if curr_title_no_date[comma_index:] in articles:
+                        # split into segments and arrange with date
+                        segment_1 = curr_title_no_date[comma_index + 2:]
+                        segment_2 = curr_title_no_date[0:comma_index]
+                        segment_3 = current_title[len(current_title) - 6:]
+                        current_title = segment_1 + " " + segment_2 + " " + segment_3
             else:
-                source = edited_title
+                # create current_title in format without date
+                if comma_index != -1:
+                    if curr_title_no_date[comma_index:] in articles:
+                        # split into segments and arrange with date
+                        segment_1 = curr_title_no_date[comma_index + 2:]
+                        segment_2 = curr_title_no_date[0:comma_index]
+                        current_title = segment_1 + " " + segment_2
+                    else:
+                        current_title = curr_title_no_date
+                else:
+                    current_title = curr_title_no_date
 
-            # Check whether they want movie with specific date or not
-            # by checking if there is a date at the end of the source.
-            # If there is, then you do nothing to the current_title
-            # If there is not a date, then you eliminate the date in the
-            # current title because it's not required.
-            if source[len(source) - 1] != ')':
-                current_title = current_title[:-7]
-
+            # for testing purposes
+            # current_title = "Ten"
+            # source = "Te"
             # build matrix
             target_list = []
             for c_t in range(len(current_title)):
@@ -752,7 +785,7 @@ class Chatbot:
                     if min_edit_distance < matches_and_distance[0][1]:
                         matches_and_distance.clear()
                         matches_and_distance.append((i, min_edit_distance))
-        
+            # for testing
         matching_indices = []
         for tup in matches_and_distance:
             matching_indices.append(tup[0])
