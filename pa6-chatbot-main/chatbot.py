@@ -17,7 +17,7 @@ class Chatbot:
         # TODO: Give your chatbot a new name.
         self.name = 'randi'
 
-        self.creative = creative
+        self.creative = False
         # self.creative = True
         # This matrix has the following shape: num_movies x num_users
         # The values stored in each row i and column j is the rating for
@@ -221,16 +221,14 @@ class Chatbot:
             return response
         # print(potential_title_in_line)
         if len(potential_title_in_line) > 0:
-            potential_movies = self.find_movies_by_title(potential_title_in_line[
-                                                             0])  # again, for now there is only one, not dealing with multiple movies in same input
+            potential_movies = self.find_movies_by_title(potential_title_in_line[0])  # again, for now there is only one, not dealing with multiple movies in same input
 
             if len(potential_movies) > 1:
                 # if it's in quotes but if there's no date and there are more than 1
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 # print("london")
-                response = "There is more than one movie named " + potential_title_in_line[
-                    0] + "." + " Which one did you mean? (Please select number above): "
+                response = "There is more than one movie named " + potential_title_in_line[0] + "." + " Which one did you mean? (Please select number above): "
                 articles = [", The", ", An", ", A"]
                 for i in range(len(potential_movies)):
                     curr_title = titles[potential_movies[i]][0]
@@ -403,7 +401,7 @@ class Chatbot:
                     scanning_input = preprocessed_input.lower()
                     potential_index = scanning_input.find(curr_title_no_date.lower())
                     while potential_index != -1:
-                        if potential_index == 0 and scanning_input[potential_index + len(curr_title_no_date)] == " ":
+                        if potential_index == 0 and scanning_input[potential_index + len(curr_title_no_date)] in valid_punct:
                             is_valid = True
                             break
                         if (potential_index == len(scanning_input) - len(curr_title_no_date)) and scanning_input[potential_index - 1] == " ":
@@ -462,40 +460,57 @@ class Chatbot:
         matches = []
         # print(titles)
         edited_title = ""
-        articles = ["The", "An", "A"]
-        first_word = title.split()[0]
-        if first_word in articles:
-            # if the title query has date
-            if title[-1] == ')':
-                # first segment is title without article
-                first_segment = title[(len(first_word) + 1):(len(title) - 7)]
-                # second segment is article with the appropriate comma and spaces
-                second_segment = ", " + first_word + " "
-                # third segment is year (with parentheses)
-                third_segment = title[len(title) - 6:]
-                edited_title = first_segment + second_segment + third_segment
-            else:
-                first_segment = title[(len(first_word) + 1):]
-                second_segment = ", " + first_word
-                edited_title = first_segment + second_segment
-            # print(edited_title)
-        else:
-            edited_title = title
+        articles = [", The", ", An", ", A"]
+        ######
+        has_date = False
+        if title[-1] == ")":
+            has_date = True
 
         for i in range(len(titles)):
-            cur = titles[i][0]
-
-            if '(' not in edited_title:
-                cur = cur[:-7]
-                # print(cur)
-            if edited_title.lower() == cur.lower() or title.lower() == cur.lower():  # in the case that article isn't moved to end
-                matches.append(i)
-                # print(titles[i])
+            curr_title = titles[i][0]
+            curr_title_no_date = curr_title[0:len(curr_title) - 7]
+            comma_index = curr_title_no_date.rfind(",")
+            if comma_index != -1:
+                if curr_title_no_date[comma_index:] in articles:
+                    first_segment = curr_title_no_date[comma_index + 2:]
+                    second_segment = curr_title_no_date[0:comma_index]
+                    third_segment = curr_title[len(curr_title) - 6:]
+                    if has_date:
+                        curr_title = first_segment + " " + second_segment + " " + third_segment
+                    else:
+                        curr_title = first_segment + " " + second_segment
+                else:
+                    if not has_date:
+                        curr_title = curr_title_no_date
             else:
-                if self.creative:
-                    # print("london")
-                    if (edited_title.lower() in cur.lower()) or (title.lower() in cur.lower()):
-                        matches.append(i)
+                if not has_date:
+                    curr_title = curr_title_no_date
+
+
+            if title.lower() == curr_title.lower() or title.lower() == curr_title_no_date:
+                # found exact match, so you don't need to look for more
+                matches.append(i)
+            else:
+                title_lower = title.lower()
+                curr_title_lower = curr_title_no_date.lower()
+                is_valid = False
+                valid_punct = [".", "!", "?", ",", ";", ":", " "]
+                scanning_input = curr_title_lower
+                potential_index = scanning_input.find(title_lower)
+                while potential_index != -1:
+                    if (potential_index == 0) and ((potential_index + len(title_lower) == len(scanning_input)) or (scanning_input[potential_index + len(title_lower)] in valid_punct)):
+                        is_valid = True
+                        break
+                    if (potential_index == len(scanning_input) - len(title_lower)) and (scanning_input[potential_index - 1] == " "):
+                        is_valid = True
+                        break
+                    if (potential_index > 0) and (potential_index + len(title_lower) != len(scanning_input)):
+                        if (scanning_input[potential_index - 1] == " ") and (scanning_input[potential_index + len(title_lower)] in valid_punct):
+                            is_valid = True
+                            break
+                    potential_index = scanning_input.lower().find(title_lower, potential_index + 1)
+                if is_valid:
+                    matches.append(i)
         return matches
 
     def extract_sentiment(self, preprocessed_input):
@@ -545,12 +560,10 @@ class Chatbot:
         total = 0
         # negation coefficient
         coe = 1
-        negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "won't",
-                          "can't", "couldn't", "nothing", "nobody", "hadn't"]
-        amplifiers = ["really", "super", "dreadfully", "totally", "never", "passionately", "desperately", "genuinely", "undoubtedly", "truly",
-                      "honestly"]
-        stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal", "atrocious", "appalling", "hate", "vile", "deplorable",
-                          "appreciate", "passionate", "enjoy"]
+        negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
+                          "can't", "couldn't"]
+        amplifiers = ["really", "super", "dreadfully", "totally"]
+        stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal"]
         factor = 1
         movie_title = False
         stemmer = PorterStemmer()
