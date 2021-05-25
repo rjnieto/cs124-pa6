@@ -182,6 +182,9 @@ class Chatbot:
             if lowerLine[0] == "what":
                 response = "To be completely honest, I'm not too sure!"
                 return response
+            if lowerLine[0] == "hey" or lowerLine[0] == "hi" or lowerLine[0] == "hello":
+                response = "Hey hey!"
+                return response
             if lowerLine[0] == "where":
                 response = "Probably somewhere super rural...or urban..."
                 return response
