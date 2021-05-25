@@ -31,16 +31,16 @@ class Chatbot:
 
         # Binarize the movie ratings before storing the binarized matrix.
         self.ratings = self.binarize(ratings, 2.5)
-        
+
         # Create some global variables
         self.num_data_pts = 0
         self.movie_data_points = np.zeros(np.shape(self.ratings)[0])
         # Create list of affirmations later
-        
+
         # Create list of affirmations later
         self.affirmations = ["yes", "yeah", "yup", "sure", "ya", "ye", "that's right", "correct", "sure"]
         self.refutations = ["no", "nah", "nope"]
-        
+
         # These are all for clarification of misspelled titles
         self.is_clarifying = False
         self.clarifying_titles = []
@@ -93,21 +93,16 @@ class Chatbot:
 
     def process(self, line):
         """Process a line of input from the REPL and generate a response.
-
         This is the method that is called by the REPL loop directly with user
         input.
-
         You should delegate most of the work of processing the user's input to
         the helper functions you write later in this class.
-
         Takes the input string from the REPL and call delegated functions that
           1) extract the relevant information, and
           2) transform the information into a response to the user.
-
         Example:
           resp = chatbot.process('I loved "The Notebook" so much!!')
           print(resp) // prints 'So you loved "The Notebook", huh?'
-
         :param line: a user-supplied line of text
         :returns: a string containing the chatbot's response to the user input
         """
@@ -117,24 +112,6 @@ class Chatbot:
         # directly based on how modular it is, we highly recommended writing   #
         # code in a modular fashion to make it easier to improve and debug.    #
         ########################################################################
-        response = "INSERT GENERIC RESPONSE"
-        lowerLine = line.lower().split(' ')
-
-        if lowerLine[0:3] == ['my', 'name', 'is']:
-            self.user = lowerLine[3]
-            response = "It's lovely to meet you " + self.user
-        if "who" in lowerLine:
-            response = "Definitely someone who is a rockstar"
-        if "what" in lowerLine:
-            response = "To be completely honest, I'm not too sure!"
-        if "where" in lowerLine:
-            response = "Probably somewhere super rural...or urban..."
-        if "when" in lowerLine:
-            response = "At a later time...don't rush it"
-        if "why" in lowerLine:
-            response = "Now that I'm thinking of it...I'm not too sure why!"
-        if "how" in lowerLine:
-            response = "Not sure!"
 
         if self.is_clarifying:
             # If they say no to the options
@@ -157,8 +134,12 @@ class Chatbot:
                     response = "Is that a yes or a no?"
                     return response
             else:
+                if not line.isnumeric() or int(line) >= len(self.clarifying_titles):
+                    response = "Let's move past this movie...please tell me something else!"
+                    self.clarifying_titles.clear()
+                    return response
                 line = self.clarifying_titles[int(line)]
-            if self.stored_sentiment == 1:
+            if self.stored_sentiment >= 1:
                 line = "I liked " + "\"" + line + "\""
             else:
                 line = "I did not like " + "\"" + line + "\""
@@ -171,13 +152,48 @@ class Chatbot:
         # if there are no matching titles, then we have to use find_closest
         # print(line)
         titles = util.load_titles('data/movies.txt')
-        potential_title_in_line = self.extract_titles(line)     # this returns list of titles found
+        potential_title_in_line = self.extract_titles(line)  # this returns list of titles found
         # print(self.find_movies_by_title(titles[potential_title_in_line[0]][0]))
         # use find_movies_by_title
         # for x in range(len(potential_title_in_line)):
         # print(potential_title_in_line)
         response = ""
         if self.no_quotes:
+            lowerLine = line.lower().split(' ')
+            if lowerLine[0] in self.refutations:
+                response = "Totally get that"
+                return response
+            if lowerLine[0] in self.affirmations:
+                response = "Yeah? Mhm."
+                return response
+            if lowerLine[0:2] == ['i', 'am']:
+                response = "Ah, must be CRAZY to be " + lowerLine[2]
+                return response
+            if lowerLine[0:2] == ['i', 'feel']:
+                response = "Ah, must be CRAZY to feel " + lowerLine[2]
+                return response
+            if lowerLine[0:3] == ['my', 'name', 'is']:
+                self.user = lowerLine[3]
+                response = "It's lovely to meet you " + self.user
+                return response
+            if lowerLine[0] == "who":
+                response = "Definitely someone who is a rockstar"
+                return response
+            if lowerLine[0] == "what":
+                response = "To be completely honest, I'm not too sure!"
+                return response
+            if lowerLine[0] == "where":
+                response = "Probably somewhere super rural...or urban..."
+                return response
+            if lowerLine[0] == "when":
+                response = "At a later time...don't rush it"
+                return response
+            if lowerLine[0] == "why":
+                response = "Now that I'm thinking of it...I'm not too sure why!"
+                return response
+            if lowerLine[0] == "how":
+                response = "Not sure!"
+                return response
             # print("london")
             if len(potential_title_in_line) == 0:
                 # if empty, say try again
@@ -202,14 +218,16 @@ class Chatbot:
             return response
         # print(potential_title_in_line)
         if len(potential_title_in_line) > 0:
-            potential_movies = self.find_movies_by_title(potential_title_in_line[0])    # again, for now there is only one, not dealing with multiple movies in same input
+            potential_movies = self.find_movies_by_title(potential_title_in_line[
+                                                             0])  # again, for now there is only one, not dealing with multiple movies in same input
 
             if len(potential_movies) > 1:
                 # if it's in quotes but if there's no date and there are more than 1
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 # print("london")
-                response = "There is more than one movie named " + potential_title_in_line[0] + "." + " Which one did you mean? (Please select number above): "
+                response = "There is more than one movie named " + potential_title_in_line[
+                    0] + "." + " Which one did you mean? (Please select number above): "
                 articles = [", The", ", An", ", A"]
                 for i in range(len(potential_movies)):
                     curr_title = titles[potential_movies[i]][0]
@@ -229,7 +247,8 @@ class Chatbot:
             if len(potential_movies) == 0:
                 # edit distance
                 # this segment is clarifying based on a misspelled word
-                print("You might have misspelled the title, wait a few seconds so I can fetch something you may be looking for...")
+                print(
+                    "You might have misspelled the title, wait a few seconds so I can fetch something you may be looking for...")
                 self.is_clarifying = True
                 self.stored_sentiment = self.extract_sentiment(line)
                 close_titles = self.find_movies_closest_to_title(potential_title_in_line[0])
@@ -258,7 +277,7 @@ class Chatbot:
 
             sentiment = self.extract_sentiment(line)
             # May have to change values for checks in if statements
-            if sentiment == 1:
+            if sentiment >= 1:
                 # there might be more than one, then we have to disambiguate
                 list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
                 self.movie_data_points[list_of_indices[0]] = 1  # assuming there is only one index
@@ -294,21 +313,18 @@ class Chatbot:
         #                          END OF YOUR CODE                            #
         ########################################################################
         return response
-    
+
     @staticmethod
     def preprocess(text):
         """Do any general-purpose pre-processing before extracting information
         from a line of text.
-
         Given an input line of text, this method should do any general
         pre-processing and return the pre-processed string. The outputs of this
         method will be used as inputs (instead of the original raw text) for the
         extract_titles, extract_sentiment, and extract_sentiment_for_movies
         methods.
-
         Note that this method is intentially made static, as you shouldn't need
         to use any attributes of Chatbot in this method.
-
         :param text: a user-supplied line of text
         :returns: the same text, pre-processed
         """
@@ -327,22 +343,18 @@ class Chatbot:
 
     def extract_titles(self, preprocessed_input):
         """Extract potential movie titles from a line of pre-processed text.
-
         Given an input text which has been pre-processed with preprocess(),
         this method should return a list of movie titles that are potentially
         in the text.
-
         - If there are no movie titles in the text, return an empty list.
         - If there is exactly one movie title in the text, return a list
         containing just that one movie title.
         - If there are multiple movie titles in the text, return a list
         of all movie titles you've extracted from the text.
-
         Example:
           potential_titles = chatbot.extract_titles(chatbot.preprocess(
                                             'I liked "The Notebook" a lot.'))
           print(potential_titles) // prints ["The Notebook"]
-
         :param preprocessed_input: a user-supplied line of text that has been
         pre-processed with preprocess()
         :returns: list of movie titles that are potentially in the text
@@ -356,7 +368,7 @@ class Chatbot:
             articles = [", The", ", An", ", A"]
             for i in range(len(titles)):
                 curr_title_date = titles[i][0]  # with year
-                curr_title_no_date = curr_title_date[0:len(titles[i][0]) - 7]   # without year
+                curr_title_no_date = curr_title_date[0:len(titles[i][0]) - 7]  # without year
                 curr_article_title_date = ""
                 curr_article_title_no_date = ""
                 starts_with_article = False
@@ -399,10 +411,9 @@ class Chatbot:
                     break
 
         return extracted_titles
-    
+
     def find_movies_by_title(self, title):
         """ Given a movie title, return a list of indices of matching movies.
-
         - If no movies are found that match the given title, return an empty
         list.
         - If multiple movies are found that match the given title, return a list
@@ -410,19 +421,17 @@ class Chatbot:
         - If exactly one movie is found that matches the given title, return a
         list
         that contains the index of that matching movie.
-
         Example:
           ids = chatbot.find_movies_by_title('Titanic')
           print(ids) // prints [1359, 2716]
-
         :param title: a string containing a movie title
         :returns: a list of indices of matching movies
         """
         ###############################################
-        # Might have to make this function so that it's 
-        # not case sensitive (convert to lowercase when 
+        # Might have to make this function so that it's
+        # not case sensitive (convert to lowercase when
         # comparing). I had to do that for the function
-        # find_movies_closest_to_title, so we may have 
+        # find_movies_closest_to_title, so we may have
         # to implement it here to be safe.
         ###############################################
         titles = util.load_titles('data/movies.txt')
@@ -455,7 +464,7 @@ class Chatbot:
             if '(' not in edited_title:
                 cur = cur[:-7]
                 # print(cur)
-            if edited_title.lower() == cur.lower() or title.lower() == cur.lower():     # in the case that article isn't moved to end
+            if edited_title.lower() == cur.lower() or title.lower() == cur.lower():  # in the case that article isn't moved to end
                 matches.append(i)
                 # print(titles[i])
         return matches
@@ -477,7 +486,7 @@ class Chatbot:
         :returns: a numerical value for the sentiment of the text
         """
 
-        #print("\n")
+        # print("\n")
         # make a tokenizer
         str = preprocessed_input
         words = [""]
@@ -552,11 +561,10 @@ class Chatbot:
                         total += 1 * coe * factor
                     if sent == "neg":
                         total += -1 * coe * factor
-        #print("Word List: ", words)
-        #print("Sentiment Score: ", total)
+        # print("Word List: ", words)
+        # print("Sentiment Score: ", total)
         return total
-    
-    
+
     def tokenize(self, preprocessed_input):
         str = preprocessed_input
         words = [""]
@@ -617,9 +625,9 @@ class Chatbot:
         :returns: a list of tuples, where the first item in the tuple is a movie
         title, and the second is the sentiment in the text toward that movie
         """
-        #print("\n")
+        # print("\n")
         words = self.tokenize(preprocessed_input)
-        #print(words)
+        # print(words)
 
         movies = []
         movie_count = 0
@@ -648,7 +656,7 @@ class Chatbot:
                 # switch to false if previously true
                 movies.append({word[1:len(word) - 1]: total * coe})
                 switch_before_end = False
-                #print("switch before end", switch_before_end)
+                # print("switch before end", switch_before_end)
                 movie_count += 1
 
             if word in self.sentiment:
@@ -657,7 +665,7 @@ class Chatbot:
                 if sent == "pos":
                     total = 1
                     switch_before_end = True
-                    #print("switch before end", switch_before_end)
+                    # print("switch before end", switch_before_end)
                 if sent == "neg":
                     total = -1
 
@@ -687,7 +695,6 @@ class Chatbot:
         return a list of the movies in the dataset whose titles have the least
         edit distance from the provided title, and with edit distance at most
         max_distance.
-
         - If no movies have titles within max_distance of the provided title,
         return an empty list.
         - Otherwise, if there's a movie closer in edit distance to the given
@@ -695,17 +702,15 @@ class Chatbot:
         index.
         - If there is a tie for closest movie, return a list with the indices
         of all movies tying for minimum edit distance to the given movie.
-
         Example:
           # should return [1656]
           chatbot.find_movies_closest_to_title("Sleeping Beaty")
-
         :param title: a potentially misspelled title
         :param max_distance: the maximum edit distance to search for
         :returns: a list of movie indices with titles closest to the given title
         and within edit distance max_distance
         """
-        
+
         titles = util.load_titles('data/movies.txt')
         matches_and_distance = []
 
@@ -715,7 +720,7 @@ class Chatbot:
         if user_input_title[len(user_input_title) - 1] == ")":
             has_date = True
         for i in range(len(titles)):
-            current_title = titles[i][0]    # target
+            current_title = titles[i][0]  # target
             # check whether the title has article first or not, because not
             # all do the weird title thing
             source = user_input_title
@@ -767,12 +772,12 @@ class Chatbot:
             for row in range(1, len(source_list) + 1):
                 for col in range(1, len(target_list) + 1):
                     potential_values = []
-                    potential_values.append(matrix[row-1][col] + 1)
-                    potential_values.append(matrix[row][col-1] + 1)
-                    if target_list[col-1] == source_list[row-1]:
-                        potential_values.append(matrix[row-1][col-1])
+                    potential_values.append(matrix[row - 1][col] + 1)
+                    potential_values.append(matrix[row][col - 1] + 1)
+                    if target_list[col - 1] == source_list[row - 1]:
+                        potential_values.append(matrix[row - 1][col - 1])
                     else:
-                        potential_values.append(matrix[row-1][col-1] + 2)
+                        potential_values.append(matrix[row - 1][col - 1] + 2)
                     matrix[row][col] = min(potential_values)
 
             min_edit_distance = matrix[len(source_list)][len(target_list)]
@@ -799,16 +804,13 @@ class Chatbot:
         you mean: Titanic (1953) or Titanic (1997)?"), use the clarification to
         narrow down the list and return a smaller list of candidates (hopefully
         just 1!)
-
         - If the clarification uniquely identifies one of the movies, this
         should return a 1-element list with the index of that movie.
         - If it's unclear which movie the user means by the clarification, it
         should return a list with the indices it could be referring to (to
         continue the disambiguation dialogue).
-
         Example:
           chatbot.disambiguate("1997", [1359, 2716]) should return [1359]
-
         :param clarification: user input intended to disambiguate between the
         given movies
         :param candidates: a list of movie indices
@@ -825,7 +827,7 @@ class Chatbot:
             if "recent" in clarification:
                 isLatest = True
             ind = movie[0].find("(")
-            year = movie[0][ind+1: ind+5]
+            year = movie[0][ind + 1: ind + 5]
             if str(year) > str(latest):
                 latest = year
                 latestIndex = index
@@ -843,20 +845,15 @@ class Chatbot:
     @staticmethod
     def binarize(ratings, threshold=2.5):
         """Return a binarized version of the given matrix.
-
         To binarize a matrix, replace all entries above the threshold with 1.
         and replace all entries at or below the threshold with a -1.
-
         Entries whose values are 0 represent null values and should remain at 0.
-
         Note that this method is intentionally made static, as you shouldn't use
         any attributes of Chatbot like self.ratings in this method.
-
         :param ratings: a (num_movies x num_users) matrix of user ratings, from
          0.5 to 5.0
         :param threshold: Numerical rating above which ratings are considered
         positive
-
         :returns: a binarized version of the movie-rating matrix
         """
         ########################################################################
@@ -876,7 +873,6 @@ class Chatbot:
                     binarized_ratings[i][j] = -1
                 if ratings[i][j] == 0:
                     binarized_ratings[i][j] = 0
-        
 
         ########################################################################
         #                        END OF YOUR CODE                              #
@@ -885,19 +881,16 @@ class Chatbot:
 
     def similarity(self, u, v):
         """Calculate the cosine similarity between two vectors.
-
         You may assume that the two arguments have the same shape.
-
         :param u: one vector, as a 1D numpy array
         :param v: another vector, as a 1D numpy array
-
         :returns: the cosine similarity between the two vectors
         """
         ########################################################################
         # TODO: Compute cosine similarity between the two vectors.             #
         ########################################################################
         num = np.dot(u, v)
-        #dem = np.sqrt(np.dot(u, u)) * np.sqrt(np.dot(v, v))
+        # dem = np.sqrt(np.dot(u, u)) * np.sqrt(np.dot(v, v))
 
         uNorm = np.linalg.norm(u)
         vNorm = np.linalg.norm(v)
@@ -909,32 +902,26 @@ class Chatbot:
         #                          END OF YOUR CODE                            #
         ########################################################################
         return similarity
-        
+
     def normalize(self, matrix):
         magnitude_r = np.sum(matrix * matrix, axis=1) ** 0.5
-        #this stops zero division 
+        # this stops zero division
         magnitude_r = np.maximum(magnitude_r, np.array(1e-20))
         return matrix / magnitude_r[:, np.newaxis]
 
     def recommend(self, user_ratings, ratings_matrix, k=10, creative=False):
         """Generate a list of indices of movies to recommend using collaborative
          filtering.
-
         You should return a collection of `k` indices of movies recommendations.
-
         As a precondition, user_ratings and ratings_matrix are both binarized.
-
         Remember to exclude movies the user has already rated!
-
         Please do not use self.ratings directly in this method.
-
         :param user_ratings: a binarized 1D numpy array of the user's movie
             ratings
         :param ratings_matrix: a binarized 2D numpy matrix of all ratings, where
           `ratings_matrix[i, j]` is the rating for movie i by user j
         :param k: the number of recommendations to generate
         :param creative: whether the chatbot is in creative mode
-
         :returns: a list of k movie indices corresponding to movies in
         ratings_matrix, in descending order of recommendation.
         """
@@ -963,7 +950,7 @@ class Chatbot:
         ratings = user_ratings[user_ratings != 0]
         scores_array = np.dot(sim_matrix, ratings)
         scores_array = np.reshape(scores_array, (-1))
-        #descneding order
+        # descneding order
         sorted_indexes = np.argsort(scores_array)[::-1]
         for ind in sorted_indexes:
             if user_ratings[ind] != 0:
@@ -985,7 +972,6 @@ class Chatbot:
     def debug(self, line):
         """
         Return debug information as a string for the line string from the REPL
-
         NOTE: Pass the debug information that you may think is important for
         your evaluators.
         """
@@ -997,7 +983,6 @@ class Chatbot:
     ############################################################################
     def intro(self):
         """Return a string to use as your chatbot's description for the user.
-
         Consider adding to this description any information about what your
         chatbot can do and how the user can interact with it.
         """
