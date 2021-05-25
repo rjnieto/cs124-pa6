@@ -561,9 +561,11 @@ class Chatbot:
         # negation coefficient
         coe = 1
         negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
-                          "can't", "couldn't"]
-        amplifiers = ["really", "super", "dreadfully", "totally"]
-        stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal"]
+                          "can't", "couldn't", "nothing", "nobody", "hadn't"]
+        amplifiers = ["really", "super", "dreadfully", "totally", "never", "passionately", "desperately", "genuinely", "undoubtedly", "truly",
+                      "honestly"]
+        stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal", "atrocious", "appalling", "hate", "vile", "deplorable",
+                          "appreciate", "passionate", "enjoy"]
         factor = 1
         movie_title = False
         stemmer = PorterStemmer()
