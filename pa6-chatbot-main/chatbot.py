@@ -302,38 +302,35 @@ class Chatbot:
                 return response
 
             sentiment = self.extract_sentiment(line)
+            # there might be more than one, then we have to disambiguate
+            list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
+            self.movie_data_points[list_of_indices[0]] = 1  # assuming there is only one index
+            self.num_data_pts += 1
+            clean_title = titles[list_of_indices[0]][0]
+            dateless_clean_title = clean_title[0:len(clean_title) - 7]
+            special_clean_articles = [", The", ", An", ", A"]
+            comma_loc = clean_title.rfind(",")
+
+            if comma_loc != -1:
+                if dateless_clean_title[comma_loc:] in special_clean_articles:
+                    part_1 = dateless_clean_title[comma_loc + 2:]
+                    part_2 = dateless_clean_title[0:comma_loc]
+                    part_3 = clean_title[len(clean_title) - 6:]
+                    clean_title = part_1 + " " + part_2 + " " + part_3
             # May have to change values for checks in if statements
             if sentiment >= 1:
-                # there might be more than one, then we have to disambiguate
-                list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
-                self.movie_data_points[list_of_indices[0]] = 1  # assuming there is only one index
-                self.num_data_pts += 1
-                clean_title = titles[list_of_indices[0]][0]
-                dateless_clean_title = clean_title[0:len(clean_title) - 7]
-                special_clean_articles = [", The", ", An", ", A"]
-                comma_loc = clean_title.rfind(",")
 
-                if comma_loc != -1:
-                    if dateless_clean_title[comma_loc:] in special_clean_articles:
-                        part_1 = dateless_clean_title[comma_loc + 2:]
-                        part_2 = dateless_clean_title[0:comma_loc]
-                        part_3 = clean_title[len(clean_title) - 6:]
-                        clean_title = part_1 + " " + part_2 + " " + part_3
-
-                response = "Glad you enjoyed " + clean_title + "!"
+                response = "Glad you enjoyed " + clean_title + "!" + " Tell me about another movie you've seen."
                 # update global
             elif sentiment == 0:
-                response = "I can't tell if you liked " + potential_title_in_line[0] + " or not."
+                response = "I can't tell if you liked " + clean_title + " or not."
             else:
-                list_of_indices = self.find_movies_by_title(potential_title_in_line[0])
-                self.movie_data_points[list_of_indices[0]] = -1  # assuming there is only one index
-                self.num_data_pts += 1
-                response = "Sorry to hear you didn't like " + potential_title_in_line[0] + "."
+                response = "Sorry to hear you didn't like " + clean_title + "." + " Tell me about another movie you've seen."
 
             if self.num_data_pts >= 5:
                 rec = self.recommend(self.movie_data_points, self.ratings)
                 first_rec = rec[0]
-                response += "\nHere is a recommendation for you: " + titles[first_rec][0]
+                response += "\nHere is a recommendation for you: " + titles[first_rec][0] + "\nFeel free to continue telling about your movie preferences."
 
         ########################################################################
         #                          END OF YOUR CODE                            #
