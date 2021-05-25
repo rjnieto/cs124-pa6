@@ -169,8 +169,23 @@ class Chatbot:
             if lowerLine[0:2] == ['i', 'am']:
                 response = "Ah, must be CRAZY to be " + lowerLine[2]
                 return response
+            if lowerLine[0:2] == ["what's", 'up']:
+                response = "Chilling like a villain"
+                return response
+            if lowerLine[0:4] == ['how', 'old', 'are', 'you']:
+                response = "A whopping 0 years old. What about you?"
+                return response
+            if lowerLine[1:3] == ['years', 'old']:
+                response = "Wow that means you are " + lowerLine[0] + " years older than me!"
+                return response
+            if lowerLine[0:3] == ['how', 'are', 'you']:
+                response = "Great! How do you feel? "
+                return response
             if lowerLine[0:2] == ['i', 'feel']:
                 response = "Ah, must be CRAZY to feel " + lowerLine[2]
+                return response
+            if lowerLine[0:3] == ["what's", 'your', 'name']:
+                response = "Randi. Coolest name out there. "
                 return response
             if lowerLine[0:3] == ['my', 'name', 'is']:
                 self.user = lowerLine[3]
@@ -196,7 +211,12 @@ class Chatbot:
                 return response
             if lowerLine[0] == "hi":
                 response = "Hello there good fellow!"
-                return response
+            if lowerLine[0] == "hello":
+                response = "Right back at you"
+            if lowerLine[0] == "hey":
+                response = "Hey there!"
+            
+            
             # print("london")
             if len(potential_title_in_line) == 0:
                 # if empty, say try again
