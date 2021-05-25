@@ -519,8 +519,8 @@ class Chatbot:
         total = 0
         # negation coefficient
         coe = 1
-        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
-                          "can't", "couldn't"]
+        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "won't",
+                          "can't", "couldn't", "don't"]
         amplifiers = ["really", "super", "dreadfully", "totally"]
         stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal"]
         factor = 1
