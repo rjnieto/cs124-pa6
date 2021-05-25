@@ -182,9 +182,6 @@ class Chatbot:
             if lowerLine[0] == "what":
                 response = "To be completely honest, I'm not too sure!"
                 return response
-            if lowerLine[0] == "hey" or lowerLine[0] == "hi" or lowerLine[0] == "hello":
-                response = "Hey hey!"
-                return response
             if lowerLine[0] == "where":
                 response = "Probably somewhere super rural...or urban..."
                 return response
@@ -196,6 +193,9 @@ class Chatbot:
                 return response
             if lowerLine[0] == "how":
                 response = "Not sure!"
+                return response
+            if lowerLine[0] == "hi":
+                response = "Hello there good fellow!"
                 return response
             # print("london")
             if len(potential_title_in_line) == 0:
@@ -366,6 +366,7 @@ class Chatbot:
         new_substring = preprocessed_input
         curr_index = new_substring.find("\"")
         if curr_index == -1:
+            # print(preprocessed_input)
             self.no_quotes = True
             titles = util.load_titles('data/movies.txt')
             articles = [", The", ", An", ", A"]
@@ -386,6 +387,7 @@ class Chatbot:
                         curr_article_title_no_date = first_segment + " " + second_segment
                         curr_article_title_date = curr_article_title_no_date + " " + date
 
+
                 if curr_title_date.lower() in preprocessed_input.lower():
                     extracted_titles.clear()
                     extracted_titles.append(curr_title_date)
@@ -394,7 +396,28 @@ class Chatbot:
                     # ensure you don't add it if same movie but with
                     # date has been added
                     # extracted_titles.append(curr_title_no_date)
-                    extracted_titles.append(curr_title_date)
+
+                    # make sure there is a space before it and after it is either a space, colon/period/exclamation/question/comma, or is last character in string
+                    # Or its the first character and there is a space after it
+                    is_valid = False
+                    valid_punct = [".", "!", "?", ",", ";", " "]
+                    scanning_input = preprocessed_input.lower()
+                    potential_index = scanning_input.find(curr_title_no_date.lower())
+                    while potential_index != -1:
+                        if potential_index == 0 and scanning_input[potential_index + len(curr_title_no_date)] == " ":
+                            is_valid = True
+                            break
+                        if (potential_index == len(scanning_input) - len(curr_title_no_date)) and scanning_input[potential_index - 1] == " ":
+                            is_valid = True
+                            break
+                        if (potential_index > 0) and (potential_index + len(curr_title_no_date) != len(scanning_input)):
+                            if (scanning_input[potential_index - 1] == " ") and (scanning_input[potential_index + len(curr_title_no_date)] in valid_punct):
+                                is_valid = True
+                                break
+                        scanning_input = scanning_input[potential_index+1:]
+                        potential_index = scanning_input.lower().find(curr_title_no_date.lower())
+                    if is_valid:
+                        extracted_titles.append(curr_title_date)
                 if starts_with_article:
                     if curr_article_title_date.lower() in preprocessed_input.lower():
                         extracted_titles.clear()
@@ -412,7 +435,6 @@ class Chatbot:
                     curr_index = new_substring.find("\"")
                 else:
                     break
-
         return extracted_titles
 
     def find_movies_by_title(self, title):
@@ -519,8 +541,8 @@ class Chatbot:
         total = 0
         # negation coefficient
         coe = 1
-        negation_words = ["didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "won't",
-                          "can't", "couldn't", "don't"]
+        negation_words = ["don't", "didn't", "never", "not", "isn't", "doesn't", "wasn't", "shouldn't", "wouldn't", "wont",
+                          "can't", "couldn't"]
         amplifiers = ["really", "super", "dreadfully", "totally"]
         stronger_words = ["love", "terrible", "great", "fantastic", "horrible", "abysmal"]
         factor = 1
