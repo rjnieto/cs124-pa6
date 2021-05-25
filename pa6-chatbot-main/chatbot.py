@@ -211,10 +211,13 @@ class Chatbot:
                 return response
             if lowerLine[0] == "hi":
                 response = "Hello there good fellow!"
+                return response
             if lowerLine[0] == "hello":
                 response = "Right back at you"
+                return response
             if lowerLine[0] == "hey":
                 response = "Hey there!"
+                return response
             
             
             # print("london")
